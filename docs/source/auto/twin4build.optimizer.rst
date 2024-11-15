@@ -1,11 +1,11 @@
-twin4build.optimizer
-====================
+optimizer
+=========
 
-Module
+Modules
 -------
 
-twin4build.optimizer.optimizer module
--------------------------------------
+optimizer module
+----------------
 
 .. automodule:: twin4build.optimizer.optimizer
    :members:

@@ -1,5 +1,5 @@
-twin4build.estimator
-====================
+estimator
+=========
 
 Package
 ---------
@@ -9,11 +9,11 @@ Package
 
    twin4build.estimator.tests
 
-Module
+   Modules
 -------
 
-twin4build.estimator.estimator module
--------------------------------------
+estimator module
+----------------
 
 .. automodule:: twin4build.estimator.estimator
    :members:

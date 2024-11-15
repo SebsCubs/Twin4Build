@@ -1,5 +1,5 @@
-twin4build.saref.profile
-========================
+profile
+=======
 
 Package
 ---------
@@ -9,11 +9,11 @@ Package
 
    twin4build.saref.profile.schedule
 
-Module
+   Modules
 -------
 
-twin4build.saref.profile.profile module
----------------------------------------
+profile module
+--------------
 
 .. automodule:: twin4build.saref.profile.profile
    :members:

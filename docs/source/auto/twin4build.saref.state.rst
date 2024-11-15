@@ -1,11 +1,11 @@
-twin4build.saref.state
-======================
+state
+=====
 
-Module
+Modules
 -------
 
-twin4build.saref.state.state module
------------------------------------
+state module
+------------
 
 .. automodule:: twin4build.saref.state.state
    :members:

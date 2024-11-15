@@ -1,5 +1,5 @@
-twin4build.saref.function
-=========================
+function
+========
 
 Package
 ---------
@@ -10,11 +10,11 @@ Package
    twin4build.saref.function.metering_function
    twin4build.saref.function.sensing_function
 
-Module
+   Modules
 -------
 
-twin4build.saref.function.function module
------------------------------------------
+function module
+---------------
 
 .. automodule:: twin4build.saref.function.function
    :members:

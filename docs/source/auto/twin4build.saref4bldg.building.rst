@@ -1,11 +1,11 @@
-twin4build.saref4bldg.building
-==============================
+building
+========
 
-Module
+Modules
 -------
 
-twin4build.saref4bldg.building.building module
-----------------------------------------------
+building module
+---------------
 
 .. automodule:: twin4build.saref4bldg.building.building
    :members:

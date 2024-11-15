@@ -1,5 +1,5 @@
-twin4build.model
-================
+model
+=====
 
 Package
 ---------
@@ -9,11 +9,11 @@ Package
 
    twin4build.model.tests
 
-Module
+   Modules
 -------
 
-twin4build.model.model module
------------------------------
+model module
+------------
 
 .. automodule:: twin4build.model.model
    :members:

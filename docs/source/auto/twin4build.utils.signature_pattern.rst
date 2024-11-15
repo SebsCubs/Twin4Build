@@ -1,11 +1,11 @@
-twin4build.utils.signature\_pattern
-===================================
+signature\_pattern
+==================
 
-Module
+Modules
 -------
 
-twin4build.utils.signature\_pattern.signature\_pattern module
--------------------------------------------------------------
+signature\_pattern module
+-------------------------
 
 .. automodule:: twin4build.utils.signature_pattern.signature_pattern
    :members:
