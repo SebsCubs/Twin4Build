@@ -705,6 +705,58 @@ class Model:
         if isinstance(receiver_component, exception_classes):
             del receiver_component.input[receiver_property_name]
     
+    def remove_connection_multiple_receivers(self, sender_component: System, sender_property_name: str) -> None:
+        """
+        Remove a connection between two components in the system. Checking if the sender property name is received by multiple components and removing all of them.
+
+        Args:
+            sender_component (System): The component sending the connection.
+            sender_property_name (str): Name of the sender property.
+
+        Raises:
+            ValueError: If the specified connection does not exist.
+        """
+        sender_obj_connection = None
+        for connection in sender_component.connectedThrough:
+            if connection.senderPropertyName == sender_property_name:
+                sender_obj_connection = connection
+                break
+        if sender_obj_connection is None:
+            raise ValueError(f"The sender component \"{sender_component.id}\" does not have a connection with the property \"{sender_property_name}\"")
+        
+        setpoint_connections = {sender_component.id: {}}
+    
+        for connection_point in sender_obj_connection.connectsSystemAt:
+            receiver_component = connection_point.connectionPointOf
+            setpoint_receiver_signal_key = connection_point.receiverPropertyName
+            receiver_component_key = receiver_component.id
+            setpoint_connections[sender_component.id][receiver_component_key] = setpoint_receiver_signal_key
+
+        sender_component.connectedThrough.remove(sender_obj_connection)
+        
+        for receiver_component_key in setpoint_connections[sender_component.id].keys():
+            receiver_component = self.component_dict[receiver_component_key]
+            receiver_component_connection_point = None
+            for connection_point in receiver_component.connectsAt:
+                if connection_point.receiverPropertyName == setpoint_connections[sender_component.id][receiver_component_key]:
+                    receiver_component_connection_point = connection_point
+                    receiver_property_name = connection_point.receiverPropertyName
+                    break
+            if receiver_component_connection_point is None:
+                raise ValueError(f"The receiver component \"{receiver_component.id}\" does not have a connection point with the property \"{setpoint_connections[sender_component.id][receiver_component_key]}\"")
+            receiver_component.connectsAt.remove(receiver_component_connection_point)
+            self._del_edge(self.system_graph, sender_component.id, receiver_component.id, self._get_edge_label(sender_property_name, receiver_property_name))
+        
+        del sender_obj_connection
+        #Exception classes 
+        exception_classes = (systems.TimeSeriesInputSystem, systems.PiecewiseLinearSystem, systems.PiecewiseLinearSupplyWaterTemperatureSystem, systems.PiecewiseLinearScheduleSystem, base.Sensor, base.Meter) # These classes are exceptions because their inputs and outputs can take any form
+
+        if isinstance(sender_component, exception_classes):
+            del sender_component.output[sender_property_name]
+
+        if isinstance(receiver_component, exception_classes):
+            del receiver_component.input[receiver_property_name]
+
     def add_outdoor_environment(self, filename: Optional[str] = None) -> None:
         """
         Add an outdoor environment to the model.

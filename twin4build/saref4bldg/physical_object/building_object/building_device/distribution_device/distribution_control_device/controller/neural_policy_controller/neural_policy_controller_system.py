@@ -39,10 +39,26 @@ class NeuralPolicyControllerSystem(NeuralPolicyController):
         self.output_size = output_size
 
         assert input_output_schema is not None, "Input and output schema must be defined"
-        try:
-            self.validate_schema(input_output_schema)
-        except (TypeError, ValueError) as e:
-            print("Validation error:", e)
+        """
+        Example of an input_output_dictionary:
+
+        "[020B][020B_space_heater]": {
+            "indoorTemperature": {
+                "min": 0,
+                "max": 40,
+                "description": "Room 020B indoor temperature"
+            },
+            "indoorCo2Concentration": {
+                "min": 0,
+                "max": 4000,
+                "description": "Room 020B indoor CO2 concentration"
+            }
+        }
+
+        The outputs are the setpoints overrided from the input components that are setpoints, identified by the "scheduleValue" key.
+        """
+        #Validate the schema, will raise error if invalid
+        self.validate_schema(input_output_schema)
 
         self.input_output_schema = input_output_schema
 
@@ -89,10 +105,17 @@ class NeuralPolicyControllerSystem(NeuralPolicyController):
 
     def normalize_input_data(self, data):
         normalized_data = []
-        for key in self.input_output_schema["input"]:
-            min_val = self.input_output_schema["input"][key]["min"]
-            max_val = self.input_output_schema["input"][key]["max"]
-            normalized_data.append((data - min_val) / (max_val - min_val))
+        # Loop through each component in the input schema
+        for component, params in self.input_output_schema["input"].items():
+            # Loop through each parameter in the component
+            for param_name, param_info in params.items():
+                min_val = param_info["min"]
+                max_val = param_info["max"]
+                # Get the corresponding value from input data
+                value = data[len(normalized_data)]  # Assuming data is ordered array matching schema
+                # Normalize the value
+                normalized_value = (value - min_val) / (max_val - min_val)
+                normalized_data.append(normalized_value)
         return normalized_data
     
     def denormalize_output_data(self, data):
@@ -112,32 +135,43 @@ class NeuralPolicyControllerSystem(NeuralPolicyController):
     
     def load_policy_model(self, policy_path):
         self.policy.load_state_dict(torch.load(policy_path))
-
+        
     def validate_schema(self, data):
         if not isinstance(data, dict):
             raise TypeError("Data should be a dictionary.")
-        for main_key in ["input", "output"]:
-            if main_key not in data:
-                raise ValueError(f"'{main_key}' key is required in the data.")
-            if not isinstance(data[main_key], dict):
-                raise TypeError(f"'{main_key}' should be a dictionary.")
-            for param, param_data in data[main_key].items():
+        
+        # Validate input exists
+        if "input" not in data:
+            raise ValueError("'input' key is required in the data.")
+        if not isinstance(data["input"], dict):
+            raise TypeError("'input' should be a dictionary.")
+        
+        # Validate each component in input
+        for component, component_data in data["input"].items():
+            if not isinstance(component_data, dict):
+                raise TypeError(f"Component '{component}' data should be a dictionary.")
+            
+            # Validate each parameter in the component
+            for param, param_data in component_data.items():
                 if not isinstance(param_data, dict):
-                    raise TypeError(f"Each parameter under '{main_key}' should be a dictionary.")
+                    raise TypeError(f"Parameter '{param}' in component '{component}' should be a dictionary.")
+                
+                # Check required keys for each parameter
                 required_keys = {"min": (float, int), "max": (float, int), "description": str}
                 for key, expected_type in required_keys.items():
                     if key not in param_data:
-                        raise ValueError(f"'{key}' key is required for '{param}' in '{main_key}'.")
+                        raise ValueError(f"'{key}' key is required for parameter '{param}' in component '{component}'.")
                     
                     if not isinstance(param_data[key], expected_type):
                         raise TypeError(
-                            f"'{key}' in '{param}' under '{main_key}' should be of type {expected_type.__name__}."
+                            f"'{key}' in parameter '{param}' under component '{component}' should be of type {expected_type.__name__}."
                         )
+                    
                 if param_data["min"] > param_data["max"]:
                     raise ValueError(
-                        f"'min' value should be <= 'max' for '{param}' in '{main_key}'."
+                        f"'min' value should be <= 'max' for parameter '{param}' in component '{component}'."
                     )
-        #print("Data is valid.")
+                
     
     def select_action(self, state):
         state = torch.FloatTensor(state)
@@ -152,15 +186,24 @@ class NeuralPolicyControllerSystem(NeuralPolicyController):
         return action.numpy(), action_logprob.numpy()
 
     def do_step(self, secondTime=None, dateTime=None, stepSize=None):
-        normalized_input = self.normalize_input_data(self.input["actualValue"].get())
+        input_data = self.input["actualValue"].get()
+        normalized_input = self.normalize_input_data(input_data)
         state = torch.tensor(normalized_input).float().to(self.device)
         action, action_logprob = self.select_action(state)
+
+        #NOTE: The output is not normalized, I will test the results and assess whether normalization is needed or not
+        for idx, output_key in enumerate(self.output.keys()):
+            self.output[output_key].set(action[idx])
+
+
+        """
         denormalized_output = self.denormalize_output_data(action)
         
         #The resulting denormalized output follows the same order as the input schema,
         for idx, key in enumerate(self.input_output_schema["output"]):
             output_key = key + "_input_signal"
             self.output[output_key].set(denormalized_output[idx])
+        """
         
 
 
