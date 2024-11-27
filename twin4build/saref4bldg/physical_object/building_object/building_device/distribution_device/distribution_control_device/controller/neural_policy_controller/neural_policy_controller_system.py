@@ -120,17 +120,34 @@ class NeuralPolicyControllerSystem(NeuralPolicyController):
     
     def denormalize_output_data(self, data):
         """
-        Denormalize the output data using the schema.
+        Denormalize the output data using the input schema's setpoint ranges.
         Inputs: data (numpy array or tensor of shape (output_size,))
         Outputs: denormalized data (numpy array)
-        The min and max values are stored in the input_output_schema["output"] dictionary.
+        
+        For each output key (e.g., "020B_space_heater_input_signal"), 
+        finds the matching component in the input schema (e.g., "020B_space_heater")
+        and uses its setpoint min/max values for denormalization.
         """
         if not isinstance(data, np.ndarray):
             data = np.array(data)
-        keys = list(self.input_output_schema["output"].keys())
-        min_vals = np.array([self.input_output_schema["output"][key]["min"] for key in keys])
-        max_vals = np.array([self.input_output_schema["output"][key]["max"] for key in keys])
-        denormalized_data = data * (max_vals - min_vals) + min_vals
+            
+        denormalized_data = np.zeros_like(data)
+        output_keys = list(self.output.keys())
+        
+        setpoint_delivery_components = []
+        for input_component_key in self.input_output_schema["input"]:
+            for input_signal_key in self.input_output_schema["input"][input_component_key]:
+                if input_signal_key == "scheduleValue":
+                    setpoint_delivery_components.append(input_component_key)
+
+        for idx, output_key in enumerate(output_keys):
+            component_name = output_key.rsplit('_input_signal', 1)[0]
+            for input_component in setpoint_delivery_components:
+                if input_component in component_name:
+                    min_val = self.input_output_schema["input"][input_component]["scheduleValue"]["min"]
+                    max_val = self.input_output_schema["input"][input_component]["scheduleValue"]["max"]
+                    denormalized_data[idx] = data[idx] * (max_val - min_val) + min_val
+                    
         return denormalized_data
     
     def load_policy_model(self, policy_path):
@@ -190,10 +207,11 @@ class NeuralPolicyControllerSystem(NeuralPolicyController):
         normalized_input = self.normalize_input_data(input_data)
         state = torch.tensor(normalized_input).float().to(self.device)
         action, action_logprob = self.select_action(state)
-
-        #NOTE: The output is not normalized, I will test the results and assess whether normalization is needed or not
+        
+        denormalized_output = self.denormalize_output_data(action)
+        
         for idx, output_key in enumerate(self.output.keys()):
-            self.output[output_key].set(action[idx])
+            self.output[output_key].set(denormalized_output[idx])
 
 
         """
