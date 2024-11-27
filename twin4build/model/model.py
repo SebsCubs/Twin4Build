@@ -97,7 +97,7 @@ class Graph:
             args (Optional[List[str]]): Additional arguments for the graph drawing command.
         """
         fontpath, fontname = self._get_font()
-        
+        beige = "#F2EADD"
         light_grey = "#71797E"
         graph_filename = os.path.join(self.graph_path, f"{filename}.png")
         graph.write(f'{filename}.dot', prog="dot")
@@ -130,6 +130,7 @@ class Graph:
                     "-Grepulsiveforce=0.5",
                     "-Gremincross=true",
                     "-Gstart=1",
+                    "-Gbgcolor=transparent",
                     "-q",
                     f"-o{graph_filename}",
                     f"{filename}.dot"] #__unflatten
@@ -541,6 +542,8 @@ class Model:
         sender_obj_connection.connectsSystemAt.append(receiver_component_connection_point)
         receiver_component_connection_point.connectsSystemThrough.append(sender_obj_connection)# if sender_obj_connection not in receiver_component_connection_point.connectsSystemThrough else None
 
+
+        # Inputs and outputs of these classes can be set dynamically. Inputs and outputs of classes not in this tuple are set as part of their class definition.
         exception_classes = (systems.TimeSeriesInputSystem,
                              systems.PiecewiseLinearSystem,
                              systems.PiecewiseLinearSupplyWaterTemperatureSystem,
@@ -548,15 +551,24 @@ class Model:
                              base.Sensor,
                              base.Meter,
                              systems.MaxSystem,
-                             systems.NeuralPolicyControllerSystem) # These classes are exceptions because their inputs and outputs can take any form 
+                             systems.NeuralPolicyControllerSystem) 
+        
         if isinstance(sender_component, exception_classes):
-            sender_component.output.update({sender_property_name: tps.Scalar()})
+            if sender_property_name not in sender_component.output:
+                # If the property is not already an output, we assume it is a Scalar
+                sender_component.output.update({sender_property_name: tps.Scalar()})
+            else:
+                pass
         else:
             message = f"The property \"{sender_property_name}\" is not a valid output for the component \"{sender_component.id}\" of type \"{type(sender_component)}\".\nThe valid output properties are: {','.join(list(sender_component.output.keys()))}"
             assert sender_property_name in (set(sender_component.input.keys()) | set(sender_component.output.keys())), message
         
         if isinstance(receiver_component, exception_classes):
-            receiver_component.input.update({receiver_property_name: tps.Scalar()})
+            if receiver_property_name not in receiver_component.input:
+                # If the property is not already an input, we assume it is a Scalar
+                receiver_component.input.update({receiver_property_name: tps.Scalar()})
+            else:
+                assert isinstance(receiver_component.input[receiver_property_name], tps.Vector), f"The input property \"{receiver_property_name}\" for the component \"{receiver_component.id}\" of type \"{type(receiver_component)}\" is already set as a Scalar input."
         else:
             message = f"The property \"{receiver_property_name}\" is not a valid input for the component \"{receiver_component.id}\" of type \"{type(receiver_component)}\".\nThe valid input properties are: {','.join(list(receiver_component.input.keys()))}"
             assert receiver_property_name in receiver_component.input.keys(), message
@@ -3609,6 +3621,7 @@ class Model:
                     "-Grepulsiveforce=0.5",
                     "-Gremincross=true",
                     "-Gstart=1",
+                    "-Gbgcolor=transparent",
                     "-q",
                     f"-o{graph_filename}",
                     f"{filename}.dot"] #__unflatten
@@ -3860,7 +3873,6 @@ class Model:
         Raises:
             AssertionError: If invalid arguments are provided.
         """
-        
         if result is not None:
             assert isinstance(result, dict), "Argument d must be a dictionary"
             cls_ = result.__class__
@@ -3888,7 +3900,7 @@ class Model:
                     self.result = estimator.MCMCEstimationResult(**d)
                 else:
                     raise Exception(f"The estimation result file is not of a supported type. The file must be a .pickle, .npz file with the name containing \"_ls\" or \"_mcmc\".")
-
+                
 
                 for key, value in self.result.items():
                     self.result[key] = 1/self.result["chain_betas"] if key=="chain_T" else value

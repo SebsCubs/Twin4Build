@@ -20,7 +20,7 @@ import twin4build.simulator.simulator as simulator
 import pygad
 import functools
 from scipy._lib._array_api import atleast_nd, array_namespace
-from typing import Union, List, Dict, Optional, Callable, TYPE_CHECKING
+from typing import Union, List, Dict, Optional, Callable, TYPE_CHECKING, Any
 if TYPE_CHECKING:
     import twin4build.model.model as model
 
@@ -64,6 +64,12 @@ class MCMCEstimationResult(dict):
                          n_par=n_par,
                          n_par_map=n_par_map)
 
+    def __copy__(self):
+        return MCMCEstimationResult(**self)
+
+    def copy(self):
+        return self.__copy__()
+
 class LSEstimationResult(dict):
     def __init__(self,
                  result_x: np.array=None,
@@ -80,6 +86,13 @@ class LSEstimationResult(dict):
                          startTime_train=startTime_train,
                          endTime_train=endTime_train,
                          stepSize_train=stepSize_train)
+
+    def __copy__(self):
+        return LSEstimationResult(**self)
+
+    
+    def copy(self):
+        return self.__copy__()
 
 class Estimator():
     """
@@ -1500,8 +1513,21 @@ class Estimator():
 
     
 
-    def ls(self, 
+    def ls(self,
            n_cores=multiprocessing.cpu_count(),
+           method: str="trf",
+           ftol: float = 1e-8,
+           xtol: float = 1e-8,
+           gtol: float = 1e-8,
+           x_scale: float = 1,
+           loss: str = 'linear',
+           f_scale: float = 1,
+           diff_step: Any | None = None,
+           tr_solver: Any | None = None,
+           tr_options: Any = {},
+           jac_sparsity: Any | None = None,
+           max_nfev: Any | None = None,
+           verbose: int = 0,
            **kwargs) -> LSEstimationResult:
         """
         Run least squares estimation.
@@ -1529,8 +1555,26 @@ class Estimator():
         self.jac_chunksize = 1
         self.model.make_pickable()
 
-        self.bounds = (self._lb, self._ub) #, loss="soft_l1"
-        ls_result = least_squares(self._res_fun_ls_separate_process, self._x0, bounds=(self._lb, self._ub), verbose=2, xtol=1e-14, ftol=1e-8, x_scale=self._x0, jac=self.numerical_jac) #Change verbose to 2 to see the optimization progress
+        self.bounds = (self._lb, self._ub)
+
+        ls_result = least_squares(self._res_fun_ls_separate_process, 
+                                  self._x0, jac=self.numerical_jac, 
+                                  bounds=self.bounds, 
+                                  method=method, 
+                                  ftol=ftol, 
+                                  xtol=xtol, 
+                                  gtol=gtol, 
+                                  x_scale=x_scale, 
+                                  loss=loss, 
+                                  f_scale=f_scale, 
+                                  diff_step=diff_step, 
+                                  tr_solver=tr_solver, 
+                                  tr_options=tr_options, 
+                                  jac_sparsity=jac_sparsity, 
+                                  max_nfev=max_nfev, 
+                                  verbose=verbose) #Change verbose to 2 to see the optimization progress
+    
+
         ls_result = LSEstimationResult(result_x=ls_result.x,
                                       component_id=[com.id for com in self.flat_component_list],
                                       component_attr=[attr for attr in self.flat_attr_list],
