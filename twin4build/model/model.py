@@ -1011,8 +1011,13 @@ class Model:
                 message = f"Required property \"hasProperty\" not set for Damper object \"{damper.id}\""
                 raise(ValueError(message))
             
+            if isinstance(row[df_dict["Damper"].columns.get_loc("isContainedIn")], str):
+                damper.isContainedIn = self.component_base_dict[row[df_dict["Damper"].columns.get_loc("isContainedIn")]]
+            else:
+                message = f"Property \"isContainedIn\" not set for Damper object \"{damper.id}\""
+                warnings.warn(message)
+
             
-            damper.isContainedIn = self.component_base_dict[row[df_dict["Damper"].columns.get_loc("isContainedIn")]]
             rsetattr(damper, "nominalAirFlowRate.hasValue", row[df_dict["Damper"].columns.get_loc("nominalAirFlowRate")])
             
         for row in df_dict["SpaceHeater"].dropna(subset=["id"]).itertuples(index=False):
@@ -1999,7 +2004,11 @@ class Model:
                 self.update_attribute(component, "connectedTo", space)
             
         for damper in damper_instances:
-            self.update_attribute(damper, "isContainedIn.contains", damper)
+            if damper.isContainedIn is not None:
+                self.update_attribute(damper, "isContainedIn.contains", damper)
+            else:
+                message = f"Property \"isContainedIn\" not set for Damper object \"{damper.id}\""
+                warnings.warn(message)
             for system in damper.subSystemOf:
                 self.update_attribute(system, "hasSubSystem", damper)
             for property_ in damper.hasProperty:

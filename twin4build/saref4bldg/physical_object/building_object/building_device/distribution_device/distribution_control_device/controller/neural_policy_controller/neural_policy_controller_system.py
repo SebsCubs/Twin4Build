@@ -20,7 +20,7 @@ uppath = lambda _path,n: os.sep.join(_path.split(os.sep)[:-n])
 file_path = uppath(os.path.abspath(__file__), 9)
 sys.path.append(file_path)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+device = "cpu" #TODO: Make this unnecesary for both windows and linux
 
 #TODO Add signature pattern
 
@@ -191,7 +191,11 @@ class NeuralPolicyControllerSystem(NeuralPolicyController):
                 
     
     def select_action(self, state):
-        state = torch.FloatTensor(state)
+        # First convert to tensor if it's not already one
+        if not isinstance(state, torch.Tensor):
+            state = torch.FloatTensor(state)
+        # Then move to the correct device
+        state = state.to(self.device)
         with torch.no_grad():
             mean, std = self.policy(state)
         dist = torch.distributions.Normal(mean, std)
