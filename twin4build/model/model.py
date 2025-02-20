@@ -551,7 +551,8 @@ class Model:
                              base.Sensor,
                              base.Meter,
                              systems.MaxSystem,
-                             systems.NeuralPolicyControllerSystem) 
+                             systems.NeuralPolicyControllerSystem,
+                             systems.ControlSignalMapSystem) 
         
         if isinstance(sender_component, exception_classes):
             if sender_property_name not in sender_component.output:
@@ -2701,7 +2702,9 @@ class Model:
             systems.BuildingSpace1AdjBoundaryOutdoorFMUSystem.__name__: {"indoorTemperature": tps.Scalar(21),
                                                         "indoorCo2Concentration": tps.Scalar(500)},      
             systems.BuildingSpace11AdjBoundaryOutdoorFMUSystem.__name__: {"indoorTemperature": tps.Scalar(21),
-                                                        "indoorCo2Concentration": tps.Scalar(500)},                                                                                   
+                                                        "indoorCo2Concentration": tps.Scalar(500)},
+            systems.BuildingSpaceNoSH1AdjBoundaryFMUSystem.__name__: {"indoorTemperature": tps.Scalar(21),
+                                                        "indoorCo2Concentration": tps.Scalar(500)},
             systems.PIControllerFMUSystem.__name__: {"inputSignal": tps.Scalar(0)},
             systems.PIDControllerSystem.__name__: {"inputSignal": tps.Scalar(0)},
             systems.RulebasedControllerSystem.__name__: {"inputSignal": tps.Scalar(0)},
@@ -2731,6 +2734,7 @@ class Model:
             systems.SensorSystem.__name__: {"measuredValue": tps.Scalar(0)},
             systems.ShadingDeviceSystem.__name__: {},
             systems.NeuralPolicyControllerSystem.__name__: {},
+            systems.ControlSignalMapSystem.__name__: {},
             systems.MeterSystem.__name__: {},
             systems.PiecewiseLinearSystem.__name__: {},
             systems.PiecewiseLinearSupplyWaterTemperatureSystem.__name__: {},
