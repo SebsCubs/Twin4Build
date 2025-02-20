@@ -21,7 +21,7 @@ class FanSystem(Fan):
         self.c4 = c4
         self.input = {"airFlowRate": tps.Scalar()}
         self.output = {"Power": tps.Scalar(),
-                       "Energy": 0}
+                       "Energy": tps.Scalar(0)}
         self._config = {"parameters": ["c1", "c2", "c3", "c4", "nominalAirFlowRate.hasValue", "nominalPowerRate.hasValue"]}
 
     @property

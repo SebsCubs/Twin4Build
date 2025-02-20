@@ -52,7 +52,19 @@ class ControlSignalMapSystem(ControlSignalMap):
         - A custom, unique identifier must be given to each outbound connection.
         - The output signal must be defined as self.output["XXXXX"].set(value) where XXXXX is the identifier of the outbound connection
         """
-        pass
+        input_signal = self.input["actualValue"].get()[0]
+        #heating valve position is 0-1, if the input signal is positiv, the valve is open with the same value but clamped at 1
+        if input_signal > 0:
+            self.output["heatingValvePosition"].set(min(input_signal, 1))
+            self.output["coolingValvePosition"].set(0)
+        else:
+            self.output["heatingValvePosition"].set(0)
+            self.output["coolingValvePosition"].set(min(-input_signal, 1))
+        #Damper position is the absolute value of the input signal, clamped at 1
+        damper_position = min(abs(input_signal), 1)
+        self.output["supplyDamperPosition"].set(damper_position)
+        #Return damper position is 1 - supply damper position
+        self.output["returnDamperPosition"].set(1 - damper_position)
 
 
 
