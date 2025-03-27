@@ -551,8 +551,7 @@ class Model:
                              base.Sensor,
                              base.Meter,
                              systems.MaxSystem,
-                             systems.NeuralPolicyControllerSystem,
-                             systems.ControlSignalMapSystem) 
+                             systems.NeuralPolicyControllerSystem,) 
         
         if isinstance(sender_component, exception_classes):
             if sender_property_name not in sender_component.output:
@@ -2734,7 +2733,6 @@ class Model:
             systems.SensorSystem.__name__: {"measuredValue": tps.Scalar(0)},
             systems.ShadingDeviceSystem.__name__: {},
             systems.NeuralPolicyControllerSystem.__name__: {},
-            systems.ControlSignalMapSystem.__name__: {},
             systems.MeterSystem.__name__: {},
             systems.PiecewiseLinearSystem.__name__: {},
             systems.PiecewiseLinearSupplyWaterTemperatureSystem.__name__: {},

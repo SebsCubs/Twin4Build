@@ -37,7 +37,7 @@ class CoilCoolingSystem(Coil):
         self.input = {"inletAirTemperature": tps.Scalar(),
                       "outletAirTemperatureSetpoint": tps.Scalar(),
                       "airFlowRate": tps.Scalar()}
-        self.output = {"power": tps.Scalar(), 
+        self.output = {"Power": tps.Scalar(), 
                        "outletAirTemperature": tps.Scalar()}
         self._config = {"parameters": ["airFlowRateMax.hasValue",
                                        "nominalSensibleCapacity.hasValue"]}
