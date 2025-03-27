@@ -62,5 +62,5 @@ class ReturnFlowJunctionSystem(flow_junction.FlowJunction):
                 self.output["airFlowRateOut"].set(m_dot_in + self.airFlowRateBias)
                 self.output["airTemperatureOut"].set(Q_dot_in.sum()/self.output["airFlowRateOut"].get())
             else:
-                self.output["airFlowRateOut"].set(0)
-                self.output["airTemperatureOut"].set(20)
+                self.output["airFlowRateOut"].set(0.0)
+                self.output["airTemperatureOut"].set(20.0)

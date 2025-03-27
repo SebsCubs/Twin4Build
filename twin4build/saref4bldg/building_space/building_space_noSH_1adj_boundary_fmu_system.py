@@ -5,7 +5,7 @@ from scipy.optimize import least_squares
 import numpy as np
 import os
 import sys
-from twin4build.utils.unit_converters.functions import to_degC_from_degK, to_degK_from_degC, do_nothing, change_sign, add_attr, integrate, multiply_const
+from twin4build.utils.unit_converters.functions import to_degC_from_degK, to_degK_from_degC, do_nothing, make_float, add_attr, integrate, multiply_const
 import twin4build.base as base
 from twin4build.utils.signature_pattern.signature_pattern import SignaturePattern, Node, Exact, IgnoreIntermediateNodes, Optional
 import twin4build.utils.input_output_types as tps
@@ -146,8 +146,8 @@ class BuildingSpaceNoSH1AdjBoundaryFMUSystem(FMUComponent, base.BuildingSpace):
         else:
             self.initialize_fmu()
             self.INITIALIZED = True ###
-        self.input["T_boundary"] = self.T_boundary
-        self.input["outdoorCo2Concentration"] = 400
+        self.input["T_boundary"] = tps.Scalar(self.T_boundary)
+        self.input["outdoorCo2Concentration"] = tps.Scalar(400)
 
 
         

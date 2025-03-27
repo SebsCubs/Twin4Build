@@ -2733,6 +2733,7 @@ class Model:
             systems.SensorSystem.__name__: {"measuredValue": tps.Scalar(0)},
             systems.ShadingDeviceSystem.__name__: {},
             systems.NeuralPolicyControllerSystem.__name__: {},
+            systems.VAVReheatControllerSystem.__name__: {"supplyAirTemp": tps.Scalar(12), "y_dam": tps.Scalar(0)},
             systems.MeterSystem.__name__: {},
             systems.PiecewiseLinearSystem.__name__: {},
             systems.PiecewiseLinearSupplyWaterTemperatureSystem.__name__: {},
@@ -2833,8 +2834,6 @@ class Model:
                     if isinstance(component.input[connection_point.receiverPropertyName], tps.Vector):
                         if component in self.instance_to_group_map:
                             (modeled_match_nodes, (component_cls, sp, groups)) = self.instance_to_group_map[component]
-
-                            # Find the group of the connected component
                             modeled_match_nodes_ = self.instance_map[connected_component]
                             groups_matched = [g for g in groups if len(modeled_match_nodes_.intersection(set(g.values())))>0]
                             assert len(groups_matched)==1, "Only one group is allowed for each component."
@@ -3130,10 +3129,10 @@ class Model:
             self.p(f"Drawing signature graphs")
             self._create_signature_graphs()
         
+
         if infer_connections:
             self.p(f"Connecting components")
             self._connect()
-
             
         
         if fcn is not None:
@@ -3141,8 +3140,10 @@ class Model:
             self.p(f"Applying user defined function")
             # self.fcn = fcn.__get__(self, Model) # This is done to avoid the fcn to be shared between instances (https://stackoverflow.com/questions/28127874/monkey-patching-python-an-instance-method)
             fcn(self)
-        # self.fcn()
-
+            # self.fcn()
+            if infer_connections:
+                self.p(f"Connecting components")
+                self._connect()
         
         self._create_system_graph()
         if create_system_graph:

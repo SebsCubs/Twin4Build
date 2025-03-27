@@ -12,6 +12,9 @@ def to_degC_from_degK(K, stepSize=None):
 def to_degK_from_degC(C, stepSize=None):
     return C+273.15
 
+def make_float(x, stepSize=None):
+    return float(x)
+
 class multiply_const():
     def __init__(self, factor):
         self.factor = factor
