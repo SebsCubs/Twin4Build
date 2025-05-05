@@ -23,6 +23,8 @@ from twin4build.systems import BuildingSpace1AdjBoundaryOutdoorFMUSystem
 from twin4build.systems import BuildingSpace2SH1AdjBoundaryOutdoorFMUSystem
 from twin4build.systems import BuildingSpace2AdjBoundaryOutdoorFMUSystem
 from twin4build.systems import BuildingSpace11AdjBoundaryOutdoorFMUSystem
+from twin4build.systems import BuildingSpaceNoSH1AdjBoundaryFMUSystem    
+from twin4build.systems import BuildingSpaceNoSH1AdjBoundaryOutdoorFMUSystem 
 from twin4build.systems import CoilPumpValveFMUSystem
 from twin4build.systems import CoilHeatingSystem
 from twin4build.systems import CoilCoolingSystem

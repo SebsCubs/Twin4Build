@@ -169,6 +169,8 @@ class FMUComponent:
             self.fmu.setReal([self.fmu_variables[FMUkey].valueReference], [x])
 
         self.fmu.doStep(currentCommunicationPoint=secondTime, communicationStepSize=stepSize)
+
+
             
         # Currently only the values for the final timestep is saved.
         # Alternatively, the in-between values in the while loop could also be saved.

@@ -39,7 +39,7 @@ class VAVReheatControllerSystem(base.SetpointController):
                     "heatingsetpointValue": tps.Scalar(),
                     "coolingsetpointValue": tps.Scalar()}
         self.output = {"y_dam": tps.Scalar(),
-                       "supplyAirTemp": tps.Scalar()}
+                       "y_valve": tps.Scalar()}
         self._config = {"parameters": ["k_coo",
                                        "k_hea",
                                        "ti_coo",
@@ -84,12 +84,19 @@ class VAVReheatControllerSystem(base.SetpointController):
 
         err_hea = t_roo_hea_set - t_roo
         err_coo = t_roo - t_roo_coo_set
-        
+
+        #Determine the period type (occupied or unoccupied)
+        # occupied from 6AM to 7PM
+        # unoccupied from 7PM to 6AM
+
+        is_occupied = (dateTime.hour >= 6 and dateTime.hour <= 19)
+
+
         # Determine operating mode
-        in_heating_mode = err_hea > self.dt_hys
-        in_cooling_mode = err_coo > self.dt_hys
+        in_heating_mode = abs(err_hea) > self.dt_hys
+        in_cooling_mode = abs(err_coo) > self.dt_hys
         
-        # Cooling controller (PI)
+        # Cooling controller (PI) 
         if in_cooling_mode:
             # Proportional term
             p_coo = self.k_coo * err_coo
@@ -101,12 +108,16 @@ class VAVReheatControllerSystem(base.SetpointController):
             self.i_coo = np.clip(self.i_coo, 0, 1)
             
             # Compute damper signal (between min flow and max flow)
-            y_dam = np.clip(p_coo + self.i_coo, self.rat_v_flo_min, 1.0)
+            # y_valve is not used when cooling is active           
             
-            # Supply air temperature for cooling (interpolate between min and ambient)
-            # Assuming room temperature as ambient for simplicity
+            if is_occupied:
+                y_dam = np.clip(p_coo + self.i_coo, self.rat_v_flo_min, 1.0)
+                
+            else:
+                y_dam = 0
+                
+            y_valve = 0
             
-            t_sup = np.clip(t_roo - (p_coo + self.i_coo), self.t_sup_min, t_roo)
         
         # Heating controller (PI)
         elif in_heating_mode:
@@ -120,21 +131,23 @@ class VAVReheatControllerSystem(base.SetpointController):
             self.i_hea = np.clip(self.i_hea, 0, 1)
             
             # Compute valve signal and fix damper at heating minimum
-            y_dam = self.rat_v_flo_hea
+            if is_occupied:
+                y_dam = self.rat_v_flo_hea
+            else:
+                y_dam = 0
             
-            # Supply air temperature for heating 
-            # Interpolate between room temp and max heating temp
-            t_sup = np.clip(t_roo + (p_hea + self.i_hea), t_roo, self.t_sup_max)
+            # heating valve position is the sum of proportional and integral terms, clipped between 0 and 1 
+            y_valve = np.clip(p_hea + self.i_hea, 0, 1)
         
         
         # Dead band
         else:
             y_dam = self.rat_v_flo_min
             # Neutral supply temperature during dead band
-            t_sup = t_roo
+            y_valve = 0
         
         self.output["y_dam"].set(y_dam)
-        self.output["supplyAirTemp"].set(t_sup)
+        self.output["y_valve"].set(y_valve)
 
 
 

@@ -2713,7 +2713,7 @@ class Model:
             systems.SequenceControllerSystem.__name__: {"inputSignal": tps.Scalar(0)},  
             systems.OnOffControllerSystem.__name__: {"inputSignal": tps.Scalar(0)},  
             systems.AirToAirHeatRecoverySystem.__name__: {"primaryTemperatureOut": tps.Scalar(21)},
-            systems.CoilPumpValveFMUSystem.__name__: {},
+            systems.CoilPumpValveFMUSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
             systems.CoilHeatingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
             systems.CoilCoolingSystem.__name__: {},
             systems.CoilHeatingCoolingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
@@ -2733,7 +2733,7 @@ class Model:
             systems.SensorSystem.__name__: {"measuredValue": tps.Scalar(0)},
             systems.ShadingDeviceSystem.__name__: {},
             systems.NeuralPolicyControllerSystem.__name__: {},
-            systems.VAVReheatControllerSystem.__name__: {"supplyAirTemp": tps.Scalar(12), "y_dam": tps.Scalar(0)},
+            systems.VAVReheatControllerSystem.__name__: {"y_valve": tps.Scalar(0), "y_dam": tps.Scalar(0)},
             systems.MeterSystem.__name__: {},
             systems.PiecewiseLinearSystem.__name__: {},
             systems.PiecewiseLinearSupplyWaterTemperatureSystem.__name__: {},
@@ -3140,11 +3140,14 @@ class Model:
             self.p(f"Applying user defined function")
             # self.fcn = fcn.__get__(self, Model) # This is done to avoid the fcn to be shared between instances (https://stackoverflow.com/questions/28127874/monkey-patching-python-an-instance-method)
             fcn(self)
-            # self.fcn()
+            # 5 rooms model:
+            """
             if infer_connections:
                 self.p(f"Connecting components")
                 self._connect()
-        
+            """
+
+                
         self._create_system_graph()
         if create_system_graph:
             self.p(f"Drawing system graph")
