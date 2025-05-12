@@ -6,7 +6,7 @@ import twin4build.utils.input_output_types as tps
 class VAVReheatControllerSystem(base.SetpointController):
     def __init__(self, 
                  rat_v_flo_min=0.3,  # Minimum airflow ratio
-                 rat_v_flo_hea=0.3,  # Heating airflow ratio
+                 rat_v_flo_hea=0.18,  # Heating airflow ratio
                  k_coo=0.1,          # Cooling controller gain
                  k_hea=0.1,          # Heating controller gain
                  ti_coo=120,         # Cooling integral time constant
@@ -93,8 +93,8 @@ class VAVReheatControllerSystem(base.SetpointController):
 
 
         # Determine operating mode
-        in_heating_mode = abs(err_hea) > self.dt_hys
-        in_cooling_mode = abs(err_coo) > self.dt_hys
+        in_heating_mode = t_roo < t_roo_hea_set - self.dt_hys
+        in_cooling_mode = t_roo > t_roo_coo_set + self.dt_hys
         
         # Cooling controller (PI) 
         if in_cooling_mode:
@@ -142,7 +142,11 @@ class VAVReheatControllerSystem(base.SetpointController):
         
         # Dead band
         else:
-            y_dam = self.rat_v_flo_min
+            if is_occupied:
+                y_dam = self.rat_v_flo_min
+            else:
+                y_dam = 0
+
             # Neutral supply temperature during dead band
             y_valve = 0
         
