@@ -4,6 +4,7 @@ from twin4build.utils.constants import Constants
 import twin4build.base as base
 from twin4build.utils.signature_pattern.signature_pattern import SignaturePattern, Node, Exact, MultipleMatches, Optional, IgnoreIntermediateNodes
 import twin4build.utils.input_output_types as tps
+import numpy as np
 
 def get_signature_pattern():
     node0 = Node(cls=base.Coil, id="<n<SUB>1</SUB>(Coil)>")
@@ -68,6 +69,8 @@ class CoilCoolingSystem(Coil):
         self.output.update(self.input)
         if self.input["inletAirTemperature"] > self.input["outletAirTemperatureSetpoint"]:
             Q = self.input["airFlowRate"]*self.specificHeatCapacityAir*(self.input["inletAirTemperature"] - self.input["outletAirTemperatureSetpoint"])
+            if np.isnan(Q):
+                raise ValueError("Q is not a number")
         else:
             Q = 0
         self.output["Power"].set(Q)

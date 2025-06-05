@@ -70,14 +70,16 @@ class CoilHeatingSystem(coil.Coil):
         if self.input["airFlowRate"]>tol:
             if self.input["inletAirTemperature"] < self.input["outletAirTemperatureSetpoint"]:
                 Q = self.input["airFlowRate"]*self.specificHeatCapacityAir*(self.input["outletAirTemperatureSetpoint"] - self.input["inletAirTemperature"])
+                if np.isnan(Q):
+                    raise ValueError("Q is not a number")
                 self.output["outletAirTemperature"].set(self.input["outletAirTemperatureSetpoint"])
             else:
                 Q = 0
             self.output["Power"].set(Q)
         else:
             # self.output["outletAirTemperature"] = self.input["outletAirTemperatureSetpoint"]
-            self.output["outletAirTemperature"].set(np.nan)
-            self.output["Power"].set(np.nan)
+            self.output["outletAirTemperature"].set(self.input["inletAirTemperature"])
+            self.output["Power"].set(0)
 
         
 

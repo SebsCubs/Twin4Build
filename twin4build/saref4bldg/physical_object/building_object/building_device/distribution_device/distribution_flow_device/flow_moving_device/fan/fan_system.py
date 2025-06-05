@@ -45,5 +45,5 @@ class FanSystem(Fan):
         f_flow = self.input["airFlowRate"]/self.nominalAirFlowRate.hasValue
         f_pl = self.c1 + self.c2*f_flow + self.c3*f_flow**2 + self.c4*f_flow**3
         W_fan = f_pl*self.nominalPowerRate.hasValue
-        self.output["Power"].set(W_fan)
+        self.output["Power"].set(max(0, W_fan))
         self.output["Energy"].set(self.output["Energy"] + W_fan*stepSize/3600/1000)
