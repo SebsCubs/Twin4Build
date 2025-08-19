@@ -2715,7 +2715,7 @@ class Model:
             systems.AirToAirHeatRecoverySystem.__name__: {"primaryTemperatureOut": tps.Scalar(21)},
             systems.CoilPumpValveFMUSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
             systems.CoilHeatingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
-            systems.CoilCoolingSystem.__name__: {},
+            systems.CoilCoolingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
             systems.CoilHeatingCoolingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
             systems.DamperSystem.__name__: {"airFlowRate": tps.Scalar(0),
                                                 "damperPosition": tps.Scalar(0)},

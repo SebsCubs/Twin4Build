@@ -71,10 +71,12 @@ class CoilCoolingSystem(Coil):
             Q = self.input["airFlowRate"]*self.specificHeatCapacityAir*(self.input["inletAirTemperature"] - self.input["outletAirTemperatureSetpoint"])
             if np.isnan(Q):
                 raise ValueError("Q is not a number")
+            self.output["outletAirTemperature"].set(self.input["outletAirTemperatureSetpoint"])
         else:
             Q = 0
+            self.output["outletAirTemperature"].set(self.input["inletAirTemperature"])
         self.output["Power"].set(Q)
-        self.output["outletAirTemperature"].set(self.input["outletAirTemperatureSetpoint"])
+        
 
 
         

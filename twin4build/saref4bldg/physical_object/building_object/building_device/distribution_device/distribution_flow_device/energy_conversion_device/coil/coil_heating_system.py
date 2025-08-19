@@ -75,6 +75,7 @@ class CoilHeatingSystem(coil.Coil):
                 self.output["outletAirTemperature"].set(self.input["outletAirTemperatureSetpoint"])
             else:
                 Q = 0
+                self.output["outletAirTemperature"].set(self.input["inletAirTemperature"])
             self.output["Power"].set(Q)
         else:
             # self.output["outletAirTemperature"] = self.input["outletAirTemperatureSetpoint"]
