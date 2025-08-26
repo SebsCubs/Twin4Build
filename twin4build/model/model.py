@@ -2713,9 +2713,9 @@ class Model:
             systems.SequenceControllerSystem.__name__: {"inputSignal": tps.Scalar(0)},  
             systems.OnOffControllerSystem.__name__: {"inputSignal": tps.Scalar(0)},  
             systems.AirToAirHeatRecoverySystem.__name__: {"primaryTemperatureOut": tps.Scalar(21)},
-            systems.CoilPumpValveFMUSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
-            systems.CoilHeatingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
-            systems.CoilCoolingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
+            systems.CoilPumpValveFMUSystem.__name__: {"outletAirTemperature": tps.Scalar(12)},
+            systems.CoilHeatingSystem.__name__: {"outletAirTemperature": tps.Scalar(12)},
+            systems.CoilCoolingSystem.__name__: {"outletAirTemperature": tps.Scalar(12)},
             systems.CoilHeatingCoolingSystem.__name__: {"outletAirTemperature": tps.Scalar(21)},
             systems.DamperSystem.__name__: {"airFlowRate": tps.Scalar(0),
                                                 "damperPosition": tps.Scalar(0)},
@@ -3058,7 +3058,7 @@ class Model:
                                  fcn=fcn, create_object_graph=create_object_graph, 
                                  create_signature_graphs=create_signature_graphs, 
                                  create_system_graph=create_system_graph, 
-                                 validate_model=validate_model, force_config_update=force_config_update)
+                                 validate_model=validate_model, force_config_update=force_config_update, verbose=verbose)
         else:
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
@@ -3068,12 +3068,12 @@ class Model:
                                      create_object_graph=create_object_graph,
                                      create_signature_graphs=create_signature_graphs,
                                      create_system_graph=create_system_graph,
-                                     validate_model=validate_model, force_config_update=force_config_update)
+                                     validate_model=validate_model, force_config_update=force_config_update, verbose=verbose)
 
     def _load(self, semantic_model_filename: Optional[str] = None, input_config: Optional[Dict] = None, 
                     fcn: Optional[Callable] = None, create_object_graph: bool = True, 
                     create_signature_graphs: bool = False, create_system_graph: bool = True, 
-                    validate_model: bool = True, force_config_update: bool = False) -> None:
+                    validate_model: bool = True, force_config_update: bool = False, verbose: bool = True) -> None:
         """
         Internal method to load and set up the model for simulation.
 
@@ -3087,6 +3087,8 @@ class Model:
             create_signature_graphs (bool): Whether to create and save signature graphs.
             create_system_graph (bool): Whether to create and save the system graph.
             validate_model (bool): Whether to perform model validation.
+            force_config_update (bool): Whether to force configuration updates.
+            verbose (bool): Whether to print progress information and model summary.
         """
 
         if self.is_loaded:
@@ -3095,9 +3097,24 @@ class Model:
 
         self.is_loaded = True
 
-        self.p = PrintProgress()
-        self.p("Loading model")
-        self.p.add_level()
+        # Create PrintProgress object only if verbose is True, otherwise create a dummy object
+        if verbose:
+            self.p = PrintProgress()
+            self.p("Loading model")
+            self.p.add_level()
+        else:
+            # Create a dummy PrintProgress object that does nothing
+            class DummyPrintProgress:
+                def __init__(self):
+                    self.level = 0
+                def __call__(self, s=None, plain=False, status="[OK]"):
+                    pass
+                def add_level(self):
+                    pass
+                def remove_level(self):
+                    pass
+            self.p = DummyPrintProgress()
+        
         self.add_outdoor_environment()
         if semantic_model_filename is not None:
             infer_connections = True
@@ -3179,7 +3196,8 @@ class Model:
             self.p("Validating model")
             self.validate()
         self.p()
-        print(self)
+        if verbose:
+            print(self)
 
     def fcn(self) -> None:
         """
